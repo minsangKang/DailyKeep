@@ -1,0 +1,88 @@
+name: DailyKeep
+options:
+  bundleIdPrefix: com.klab
+  deploymentTarget:
+    iOS: "27.1"
+    macOS: "27.0"
+  createIntermediateGroups: true
+configFiles:
+  Debug: Config/Env.xcconfig
+  Release: Config/Env.xcconfig
+targets:
+  DailyKeep:
+    type: application
+    supportedDestinations: [iOS, macOS]
+    sources:
+      - Sources
+      - Resources/Assets.xcassets
+    info:
+      path: Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Daily Keep
+        CFBundleDevelopmentRegion: ko
+        CFBundleLocalizations: [ko]
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        LSApplicationCategoryType: public.app-category.productivity
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
+        UIBackgroundModes: [remote-notification]
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        NSCalendarsFullAccessUsageDescription: 할 일 캘린더에 기본 캘린더 일정을 함께 보여주기 위해 사용합니다.
+        NSPhotoLibraryUsageDescription: 위키에 사진을 넣기 위해 사용합니다.
+        # Env.xcconfig 값을 앱 런타임으로 넘긴다 — AppConfig.swift에서만 읽는다
+        DKGeminiAPIKey: $(GEMINI_API_KEY)
+        DKGeminiModel: $(GEMINI_MODEL)
+        DKDefaultAIProvider: $(AI_DEFAULT_PROVIDER)
+        DKICloudEnabled: $(ICLOUD_ENABLED)
+        DKICloudContainer: $(ICLOUD_CONTAINER)
+        DKTeamID: $(DEVELOPMENT_TEAM)
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(DK_BUNDLE_ID)
+        SWIFT_VERSION: "6.0"
+        SWIFT_APPROACHABLE_CONCURRENCY: YES
+        SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: NO
+        ENABLE_PREVIEWS: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        "CODE_SIGN_ENTITLEMENTS[sdk=iphone*]": Resources/DailyKeep-iOS.entitlements
+        "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": Resources/DailyKeep-macOS.entitlements
+        ENABLE_APP_SANDBOX: YES
+        ENABLE_HARDENED_RUNTIME: YES
+  DailyKeepTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests
+    dependencies:
+      - target: DailyKeep
+    settings:
+      base:
+        SWIFT_VERSION: "6.0"
+        SWIFT_APPROACHABLE_CONCURRENCY: YES
+        SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/DailyKeep.app/Contents/MacOS/DailyKeep
+        BUNDLE_LOADER: $(TEST_HOST)
+schemes:
+  DailyKeep:
+    build:
+      targets:
+        DailyKeep: all
+    test:
+      targets:
+        - DailyKeepTests
