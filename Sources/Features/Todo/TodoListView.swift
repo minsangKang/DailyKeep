@@ -93,6 +93,7 @@ struct TodoDetailView: View {
             }
             Section {
                 Toggle("날짜", isOn: hasDate)
+                    .monochromeToggle()
                 if let due = todo.dueDate {
                     DatePicker("날짜", selection: Binding { due } set: { todo.dueDate = $0 }, displayedComponents: .date)
                         .datePickerStyle(.graphical)

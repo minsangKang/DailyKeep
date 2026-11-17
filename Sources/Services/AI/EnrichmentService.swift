@@ -37,19 +37,31 @@ final class EnrichmentService {
         word.aiError = ""
         Task {
             do {
-                let insight = try await enricher.enrich(term: term)
+                var insight: WordInsight
+                var usedProvider = provider
+                do {
+                    insight = try await enricher.enrich(term: term)
+                } catch let error as EnrichError where error.isGuardrail && GeminiEnricher.availabilityDescription == nil {
+                    // 온디바이스 안전 필터에 막힌 단어는 Gemini 키가 있으면 대신 정리합니다.
+                    insight = try await GeminiEnricher().enrich(term: term)
+                    usedProvider = .gemini
+                }
                 word.meaning = insight.meaning
                 word.partOfSpeech = insight.partOfSpeech
                 word.pronunciation = insight.pronunciation
                 word.examples = insight.examples
                 word.synonyms = insight.synonyms
                 word.usageNote = insight.usageNote
-                word.aiProvider = provider.label
+                word.aiProvider = usedProvider == provider ? provider.label : "\(usedProvider.label) (온디바이스 대신)"
                 word.aiStatus = .done
                 word.touch()
             } catch {
                 word.aiStatus = .failed
-                word.aiError = error.localizedDescription
+                var message = error.localizedDescription
+                if (error as? EnrichError)?.isGuardrail == true {
+                    message += " 설정에서 AI를 Gemini로 바꾸고 'AI로 다시 정리'를 누르면 정리할 수 있어요."
+                }
+                word.aiError = message
             }
         }
     }

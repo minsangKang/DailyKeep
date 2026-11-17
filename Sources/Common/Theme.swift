@@ -120,3 +120,15 @@ extension View {
             }
     }
 }
+
+extension Color {
+    /// 토글 켜짐 색. 라이트는 검정, 다크는 중간 회색(#8E8E93)이라 흰 손잡이와 구분됩니다.
+    static let toggleTint = Color("ToggleTint")
+}
+
+extension View {
+    /// 흑백 테마에서 켜짐/꺼짐이 구분되는 토글
+    func monochromeToggle() -> some View {
+        tint(.toggleTint)
+    }
+}

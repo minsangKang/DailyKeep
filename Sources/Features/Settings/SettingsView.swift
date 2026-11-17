@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 struct SettingsView: View {
     @Environment(EnrichmentService.self) private var enrichment
     @Environment(CalendarEventStore.self) private var calendar
+    @Environment(SyncMonitor.self) private var sync
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
 
@@ -36,6 +37,7 @@ struct SettingsView: View {
 
             Section("캘린더") {
                 Toggle("기본 캘린더 일정 함께 보기", isOn: $calendar.isEnabled)
+                    .monochromeToggle()
                 LabeledContent("권한", value: calendar.statusDescription).font(.footnote)
             }
 
@@ -53,8 +55,19 @@ struct SettingsView: View {
                 Text("index.json에 전체 구조와 id가, 항목마다 .md 파일이 담긴 폴더로 저장됩니다. 가져오면 같은 id는 더 최근 것으로 맞춥니다.")
             }
 
-            Section("동기화") {
+            Section {
                 LabeledContent("저장 방식", value: ModelContainerFactory.mode.rawValue)
+                if ModelContainerFactory.mode == .iCloud {
+                    LabeledContent("iCloud 계정", value: sync.accountStatus)
+                    LabeledContent("마지막 동기화", value: sync.lastEvent ?? "아직 없음")
+                    if let error = sync.lastError {
+                        Text(error).font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
+            } header: {
+                Text("동기화")
+            } footer: {
+                Text("같은 Apple 계정으로 로그인한 기기끼리 자동으로 맞춰집니다. 앱이 켜져 있을 때 몇 초~몇 분 안에 반영돼요.")
             }
         }
         .formStyle(.grouped)
@@ -66,6 +79,7 @@ struct SettingsView: View {
             ToolbarItem(placement: .confirmationAction) { Button("완료") { dismiss() } }
             #endif
         }
+        .task { await sync.refreshAccount() }
         .fileExporter(isPresented: $exporting, document: exportDocument, contentType: .folder,
                       defaultFilename: BackupService.defaultFolderName()) { result in
             if case .failure(let error) = result { message = "내보내기 실패: \(error.localizedDescription)" }

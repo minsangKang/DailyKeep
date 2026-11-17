@@ -11,10 +11,10 @@ final class CalendarEventStore {
     private(set) var revision = 0
     private var observer: (any NSObjectProtocol)?
 
-    var isEnabled: Bool {
-        get { UserDefaults.standard.object(forKey: Self.showKey) as? Bool ?? true }
-        set {
-            UserDefaults.standard.set(newValue, forKey: Self.showKey)
+    /// 저장 속성이어야 Observation이 변화를 알아채 토글·달력이 바로 갱신됩니다.
+    var isEnabled: Bool = UserDefaults.standard.object(forKey: CalendarEventStore.showKey) as? Bool ?? true {
+        didSet {
+            UserDefaults.standard.set(isEnabled, forKey: Self.showKey)
             revision += 1
         }
     }

@@ -19,9 +19,66 @@ struct OnDeviceEnricher: WordEnricher {
 
     func enrich(term: String) async throws -> WordInsight {
         if let reason = Self.availabilityDescription { throw EnrichError.unavailable(reason) }
-        let session = LanguageModelSession(instructions: WordPrompt.instructions)
-        let response = try await session.respond(to: WordPrompt.make(for: term), generating: GeneratedInsight.self)
-        return response.content.insight
+        do {
+            let session = LanguageModelSession(instructions: WordPrompt.instructions)
+            let response = try await session.respond(to: WordPrompt.make(for: term), generating: GeneratedInsight.self)
+            return response.content.insight
+        } catch {
+            // 시사·정치 용어(예: 대북제재)는 기본 안전 필터에 걸리기 쉽습니다.
+            // 단어 설명은 사전 성격이라 완화 모드로 한 번 더 시도합니다(완화 모드는 문자열 응답에만 적용).
+            let failure = OnDeviceFailure(error)
+            guard failure == .guardrail else { throw EnrichError.onDevice(failure) }
+            do {
+                return try await enrichPermissively(term: term)
+            } catch let error as EnrichError {
+                throw error
+            } catch {
+                throw EnrichError.onDevice(OnDeviceFailure(error))
+            }
+        }
+    }
+
+    private func enrichPermissively(term: String) async throws -> WordInsight {
+        let model = SystemLanguageModel(guardrails: .permissiveContentTransformations)
+        let session = LanguageModelSession(model: model, instructions: WordPrompt.instructions)
+        let prompt = WordPrompt.make(for: term) + "\n\n" + WordPrompt.jsonFormat
+        let text = try await session.respond(to: prompt).content
+        return try WordPrompt.decodeJSON(text)
+    }
+}
+
+/// 온디바이스 모델 실패를 화면에 보여줄 종류로 나눕니다.
+nonisolated enum OnDeviceFailure: Equatable, Sendable {
+    case guardrail, unsupportedLanguage, busy, tooLong, other
+
+    init(_ error: any Error) {
+        if let error = error as? LanguageModelError {
+            switch error {
+            case .guardrailViolation, .refusal: self = .guardrail
+            case .unsupportedLanguageOrLocale: self = .unsupportedLanguage
+            case .rateLimited, .timeout: self = .busy
+            case .contextSizeExceeded: self = .tooLong
+            default: self = .other
+            }
+            return
+        }
+        // 27.0에서 deprecated된 이전 오류 타입(GenerationError)으로 올 때를 대비해 케이스 이름으로 판별합니다.
+        let name = String(describing: error)
+        if name.contains("guardrailViolation") || name.contains("refusal") { self = .guardrail }
+        else if name.contains("unsupportedLanguageOrLocale") { self = .unsupportedLanguage }
+        else if name.contains("rateLimited") || name.contains("concurrentRequests") { self = .busy }
+        else if name.contains("exceededContextWindowSize") { self = .tooLong }
+        else { self = .other }
+    }
+
+    var koreanDescription: String {
+        switch self {
+        case .guardrail: "Apple 온디바이스 모델이 민감한 주제로 판단해 답하지 않았어요."
+        case .unsupportedLanguage: "온디바이스 모델이 이 언어를 지원하지 않아요."
+        case .busy: "요청이 몰려 있어요. 잠시 후 다시 시도해 주세요."
+        case .tooLong: "입력이 너무 길어요."
+        case .other: "온디바이스 모델이 답을 만들지 못했어요."
+        }
     }
 }
 

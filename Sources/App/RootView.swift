@@ -25,6 +25,9 @@ struct RootView: View {
         }
         .tabViewStyle(.sidebarAdaptable)
         .tint(.primary)
+        // 어느 화면이든 빈 곳을 누르거나 목록을 스크롤하면 키보드가 닫힙니다
+        .dismissesKeyboardOnTap()
+        .scrollDismissesKeyboard(.immediately)
         .sheet(isPresented: $router.showSettings) {
             NavigationStack { SettingsView() }
         }

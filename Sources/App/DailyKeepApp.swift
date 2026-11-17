@@ -7,6 +7,8 @@ struct DailyKeepApp: App {
     @State private var router = AppRouter()
     @State private var enrichment = EnrichmentService()
     @State private var calendar = CalendarEventStore()
+    /// container가 먼저 만들어져야 동기화 방식을 알 수 있어 그 뒤에 둡니다
+    @State private var sync = SyncMonitor()
 
     var body: some Scene {
         WindowGroup {
@@ -14,6 +16,7 @@ struct DailyKeepApp: App {
                 .environment(router)
                 .environment(enrichment)
                 .environment(calendar)
+                .environment(sync)
                 #if DEBUG
                 .onAppear { SampleData.seedIfRequested(container.mainContext) }
                 #endif
@@ -29,6 +32,7 @@ struct DailyKeepApp: App {
             SettingsView()
                 .environment(enrichment)
                 .environment(calendar)
+                .environment(sync)
                 .frame(width: 520, height: 560)
         }
         .modelContainer(container)
