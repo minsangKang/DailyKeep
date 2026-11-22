@@ -15,6 +15,7 @@ struct MarkdownFile {
 
     func string(_ key: String) -> String { self[key] as? String ?? "" }
     func bool(_ key: String) -> Bool { self[key] as? Bool ?? false }
+    func int(_ key: String) -> Int { self[key] as? Int ?? 0 }
     func strings(_ key: String) -> [String] { self[key] as? [String] ?? [] }
     func date(_ key: String) -> Date? { (self[key] as? String).flatMap { try? Date($0, strategy: .iso8601) } }
     func uuid(_ key: String) -> UUID? { UUID(uuidString: string(key)) }

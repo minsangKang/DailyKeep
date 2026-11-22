@@ -156,3 +156,31 @@ extension Array where Element: KeepItem {
             .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 }
+
+/// 저장 버튼을 눌러야 반영되는 편집 화면(식사·지출)의 "카테고리" 행.
+/// 고른 카테고리를 바인딩으로만 들고 있다가 저장할 때 항목에 넣습니다.
+struct CategoryDraftField: View {
+    @Binding var categories: [ItemCategory]
+    @State private var picking = false
+
+    var body: some View {
+        Button {
+            picking = true
+        } label: {
+            HStack(alignment: .firstTextBaseline) {
+                Image(systemName: "number").foregroundStyle(.secondary)
+                if categories.isEmpty {
+                    Text("카테고리 추가").foregroundStyle(.secondary)
+                } else {
+                    Text(categories.map(\.name).joined(separator: ", "))
+                }
+                Spacer()
+            }
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .sheet(isPresented: $picking) {
+            CategoryPicker(selected: categories) { categories = $0 }
+        }
+    }
+}

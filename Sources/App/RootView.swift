@@ -19,6 +19,9 @@ struct RootView: View {
             Tab(ItemKind.link.label, systemImage: ItemKind.link.systemImage, value: AppTab.links) {
                 NavigationStack { LinksView() }
             }
+            Tab("기록", systemImage: "square.and.pencil", value: AppTab.records) {
+                NavigationStack { RecordsTab() }
+            }
             Tab("검색", systemImage: "magnifyingglass", value: AppTab.search, role: .search) {
                 NavigationStack { GlobalSearchView() }
             }

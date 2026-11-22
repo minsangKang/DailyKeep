@@ -60,6 +60,24 @@ enum SampleData {
         link.categories = [shopping]
         context.insert(link)
         context.insert(Bookmark(url: URL(string: "https://developer.apple.com/documentation/swiftui")!))
+
+        let food = ItemCategory(name: "한식")
+        let cafe = ItemCategory(name: "카페")
+        [food, cafe].forEach(context.insert)
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+        let lunch = MealLog(title: "김치찌개, 계란말이", day: today, mealTime: .lunch)
+        lunch.categories = [food]
+        let latte = MealLog(title: "라테 한 잔", day: today, mealTime: .snack)
+        latte.categories = [cafe]
+        let dinner = MealLog(title: "회사 앞 국밥", day: yesterday, mealTime: .dinner)
+        dinner.categories = [food]
+        [lunch, latte, dinner].forEach(context.insert)
+
+        let coffee = Expense(title: "스타벅스", amount: 5_300, day: today)
+        coffee.categories = [cafe]
+        let market = Expense(title: "동네 마트 장보기", amount: 32_800, day: yesterday)
+        market.categories = [shopping]
+        [coffee, market, Expense(title: "버스", amount: 1_500, day: today)].forEach(context.insert)
     }
 }
 #endif

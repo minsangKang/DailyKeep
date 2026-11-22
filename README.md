@@ -1,6 +1,6 @@
 # Daily Keep
 
-단어, 할 일, 위키, 링크를 빠르게 담고 다시 찾아보는 흑백 SwiftUI 앱입니다. iPhone(iOS 26 이상)과 Mac(macOS 26 이상)에서 같은 코드로 돌아갑니다.
+단어, 할 일, 위키, 링크, 기록(식사·지출)을 빠르게 담고 다시 찾아보는 흑백 SwiftUI 앱입니다. iPhone(iOS 26 이상)과 Mac(macOS 26 이상)에서 같은 코드로 돌아갑니다.
 
 ## 실행
 
@@ -48,9 +48,10 @@ make test       # 단위 테스트(macOS)
 DailyKeep-Backup-2026-11-15/
   index.json                 전체 구조(카테고리, 항목 id·메타·파일 경로)
   words/<제목>-<id8>.md       YAML front matter + 본문
-  todos/  wiki/  links/
+  todos/  wiki/  links/  meals/  expenses/
   wiki/assets/<uuid>.jpg     위키 사진(본문의 ![](assets/…)와 같은 상대 경로)
   links/assets/<uuid>.jpg    링크 섬네일
+  meals/assets/<uuid>.jpg    식사 사진
 ```
 
 ## 참고

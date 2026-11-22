@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 enum ItemKind: String, CaseIterable, Identifiable, Codable, Hashable {
-    case word, todo, wiki, link
+    case word, todo, wiki, link, meal, expense
 
     var id: String { rawValue }
 
@@ -12,6 +12,8 @@ enum ItemKind: String, CaseIterable, Identifiable, Codable, Hashable {
         case .todo: "할 일"
         case .wiki: "위키"
         case .link: "링크"
+        case .meal: "식사"
+        case .expense: "지출"
         }
     }
 
@@ -21,6 +23,8 @@ enum ItemKind: String, CaseIterable, Identifiable, Codable, Hashable {
         case .todo: "checklist"
         case .wiki: "book.pages"
         case .link: "link"
+        case .meal: "fork.knife"
+        case .expense: "wonsign.circle"
         }
     }
 
@@ -31,11 +35,13 @@ enum ItemKind: String, CaseIterable, Identifiable, Codable, Hashable {
         case .todo: "todos"
         case .wiki: "wiki"
         case .link: "links"
+        case .meal: "meals"
+        case .expense: "expenses"
         }
     }
 }
 
-/// 네 종류가 공유하는 메타정보: 타이틀, 날짜, 카테고리(다대다).
+/// 모든 종류가 공유하는 메타정보: 타이틀, 날짜, 카테고리(다대다).
 nonisolated protocol KeepItem: PersistentModel {
     static var kind: ItemKind { get }
     var id: UUID { get set }

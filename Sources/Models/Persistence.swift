@@ -4,7 +4,8 @@ import SwiftData
 enum SchemaV1: VersionedSchema {
     static let versionIdentifier = Schema.Version(1, 0, 0)
     static var models: [any PersistentModel.Type] {
-        [ItemCategory.self, Word.self, TodoItem.self, WikiNote.self, WikiImage.self, Bookmark.self]
+        [ItemCategory.self, Word.self, TodoItem.self, WikiNote.self, WikiImage.self, Bookmark.self,
+         MealLog.self, Expense.self]
     }
 }
 

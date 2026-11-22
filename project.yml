@@ -39,7 +39,8 @@ targets:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
         NSCalendarsFullAccessUsageDescription: 할 일 캘린더에 기본 캘린더 일정을 함께 보여주기 위해 사용합니다.
-        NSPhotoLibraryUsageDescription: 위키에 사진을 넣기 위해 사용합니다.
+        NSPhotoLibraryUsageDescription: 위키와 식사 기록에 사진을 넣기 위해 사용합니다.
+        NSCameraUsageDescription: 먹은 음식을 사진으로 기록하기 위해 사용합니다.
         # Env.xcconfig 값을 앱 런타임으로 넘긴다 — AppConfig.swift에서만 읽는다
         DKGeminiAPIKey: $(GEMINI_API_KEY)
         DKGeminiModel: $(GEMINI_MODEL)

@@ -10,6 +10,8 @@ import UniformTypeIdentifiers
 /// todos/… wiki/… links/…
 /// wiki/assets/<uuid>.jpg      위키 사진(본문의 ![](assets/…)와 같은 상대 경로)
 /// links/assets/<uuid>.jpg     링크 섬네일
+/// meals/assets/<uuid>.jpg     식사 사진
+/// expenses/…                  지출(사진 없음)
 /// ```
 struct BackupIndex: Codable {
     struct Category: Codable {
@@ -87,6 +89,14 @@ enum BackupService {
             var assets: [String: Data] = [:]
             if let data = bookmark.thumbnail { assets[thumbnailName(bookmark)] = data }
             add(bookmark, markdown(bookmark), assets: assets)
+        }
+        for meal in try context.fetch(FetchDescriptor<MealLog>(sortBy: [SortDescriptor(\.createdAt)])) {
+            var assets: [String: Data] = [:]
+            if let data = meal.photo { assets[photoName(meal)] = data }
+            add(meal, markdown(meal), assets: assets)
+        }
+        for expense in try context.fetch(FetchDescriptor<Expense>(sortBy: [SortDescriptor(\.createdAt)])) {
+            add(expense, markdown(expense))
         }
 
         let categories = try context.fetch(FetchDescriptor<ItemCategory>(sortBy: [SortDescriptor(\.name)]))
@@ -183,6 +193,28 @@ enum BackupService {
         return file
     }
 
+    static func markdown(_ meal: MealLog) -> MarkdownFile {
+        var file = common(meal)
+        file.set("day", meal.day.iso)
+        file.set("mealTime", meal.mealTime.rawValue)
+        file.set("photo", meal.photo == nil ? nil : "assets/\(photoName(meal))")
+        var body = ["# \(meal.day.formatted(date: .long, time: .omitted)) \(meal.mealTime.label)"]
+        if meal.photo != nil { body.append("![](assets/\(photoName(meal)))") }
+        if !meal.title.isEmpty { body.append(meal.title) }
+        file.body = body.joined(separator: "\n\n") + "\n"
+        return file
+    }
+
+    static func markdown(_ expense: Expense) -> MarkdownFile {
+        var file = common(expense)
+        file.set("day", expense.day.iso)
+        file.set("amount", expense.amount)
+        var body = ["# \(expense.amount.won)", "날짜: \(expense.day.formatted(date: .long, time: .omitted))"]
+        if !expense.title.isEmpty { body.append(expense.title) }
+        file.body = body.joined(separator: "\n\n") + "\n"
+        return file
+    }
+
     // MARK: 가져오기
 
     static func restore(from root: FileWrapper, into context: ModelContext) throws -> RestoreSummary {
@@ -211,6 +243,8 @@ enum BackupService {
         var todos = try dictionary(TodoItem.self, context)
         var notes = try dictionary(WikiNote.self, context)
         var bookmarks = try dictionary(Bookmark.self, context)
+        var meals = try dictionary(MealLog.self, context)
+        var expenses = try dictionary(Expense.self, context)
 
         for entry in index.items {
             guard let data = file(at: entry.file, in: root) else { summary.skipped += 1; continue }
@@ -265,6 +299,19 @@ enum BackupService {
                     bookmark.metadataFetched = true
                     bookmark.categories = categories
                 }
+            case .meal:
+                upsert(entry, &meals, context, &summary, make: { MealLog() }) { meal in
+                    meal.day = md.date("day") ?? entry.createdAt
+                    meal.mealTime = MealTime(rawValue: md.string("mealTime")) ?? .lunch
+                    if let path = md["photo"] as? String { meal.photo = file(at: "\(folder)/\(path)", in: root) }
+                    meal.categories = categories
+                }
+            case .expense:
+                upsert(entry, &expenses, context, &summary, make: { Expense() }) { expense in
+                    expense.day = md.date("day") ?? entry.createdAt
+                    expense.amount = md.int("amount")
+                    expense.categories = categories
+                }
             }
         }
         try context.save()
@@ -315,6 +362,7 @@ enum BackupService {
     }
 
     private static func thumbnailName(_ bookmark: Bookmark) -> String { "\(bookmark.id.uuidString.lowercased()).jpg" }
+    private static func photoName(_ meal: MealLog) -> String { "\(meal.id.uuidString.lowercased()).jpg" }
 
     private static func regular(_ data: Data, _ name: String) -> FileWrapper {
         let wrapper = FileWrapper(regularFileWithContents: data)

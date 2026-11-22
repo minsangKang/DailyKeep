@@ -5,6 +5,45 @@ import Testing
 
 @MainActor
 struct BackupTests {
+    @Test func mealsAndExpensesRoundTrip() throws {
+        let sourceContainer = ModelContainerFactory.make(inMemory: true)
+        let source = sourceContainer.mainContext
+        let food = ItemCategory(name: "한식")
+        source.insert(food)
+        let day = Date(timeIntervalSince1970: 1_800_000_000)
+        let meal = MealLog(title: "김치찌개", day: day, mealTime: .dinner)
+        meal.photo = Data([0xFF, 0xD8, 0x02])
+        meal.categories = [food]
+        source.insert(meal)
+        let expense = Expense(title: "점심값", amount: 12_500, day: day)
+        expense.categories = [food]
+        source.insert(expense)
+        try source.save()
+
+        let wrapper = try BackupService.makeBackup(from: source)
+        let files = try #require(wrapper.fileWrappers)
+        #expect(files["meals"]?.fileWrappers?["assets"]?.fileWrappers?["\(meal.id.uuidString.lowercased()).jpg"] != nil)
+        #expect(files["expenses"] != nil)
+
+        let targetContainer = ModelContainerFactory.make(inMemory: true)
+        let target = targetContainer.mainContext
+        let summary = try BackupService.restore(from: wrapper, into: target)
+        #expect(summary.created == 2)
+
+        let restoredMeal = try #require(try target.fetch(FetchDescriptor<MealLog>()).first)
+        #expect(restoredMeal.id == meal.id)
+        #expect(restoredMeal.title == "김치찌개")
+        #expect(restoredMeal.mealTime == .dinner)
+        #expect(restoredMeal.day == meal.day)
+        #expect(restoredMeal.photo == meal.photo)
+        #expect(restoredMeal.categoryList.map(\.name) == ["한식"])
+
+        let restoredExpense = try #require(try target.fetch(FetchDescriptor<Expense>()).first)
+        #expect(restoredExpense.amount == 12_500)
+        #expect(restoredExpense.title == "점심값")
+        #expect(restoredExpense.day == expense.day)
+    }
+
     @Test func exportThenImportRestoresEverything() throws {
         let sourceContainer = ModelContainerFactory.make(inMemory: true)
         let source = sourceContainer.mainContext

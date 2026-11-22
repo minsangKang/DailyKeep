@@ -1,19 +1,23 @@
 import SwiftData
 import SwiftUI
 
-/// 네 종류를 한 번에 찾는 검색. 토큰 = 카테고리, 범위 = 종류.
+/// 모든 종류를 한 번에 찾는 검색. 토큰 = 카테고리, 범위 = 종류.
 struct GlobalSearchView: View {
     @Query(sort: \ItemCategory.name) private var categories: [ItemCategory]
     @Query(sort: \Word.updatedAt, order: .reverse) private var words: [Word]
     @Query(sort: \TodoItem.updatedAt, order: .reverse) private var todos: [TodoItem]
     @Query(sort: \WikiNote.updatedAt, order: .reverse) private var notes: [WikiNote]
     @Query(sort: \Bookmark.updatedAt, order: .reverse) private var bookmarks: [Bookmark]
+    @Query(sort: \MealLog.day, order: .reverse) private var meals: [MealLog]
+    @Query(sort: \Expense.day, order: .reverse) private var expenses: [Expense]
     @Environment(\.openURL) private var openURL
 
     @State private var query = ""
     @State private var tokens: [ItemCategory] = []
     @State private var scope: ItemKind?
     @State private var editing: Bookmark?
+    @State private var editingMeal: MealLog?
+    @State private var editingExpense: Expense?
 
     private var tokenIDs: Set<UUID> { Set(tokens.map(\.id)) }
     private var isIdle: Bool { query.nonEmpty == nil && tokens.isEmpty }
@@ -42,6 +46,8 @@ struct GlobalSearchView: View {
         .navigationDestination(for: TodoItem.self) { TodoDetailView(todo: $0) }
         .navigationDestination(for: WikiNote.self) { WikiEditorView(note: $0) }
         .sheet(item: $editing) { BookmarkEditor(bookmark: $0) }
+        .sheet(item: $editingMeal) { MealEditor(meal: $0) }
+        .sheet(item: $editingExpense) { ExpenseEditor(expense: $0) }
         .settingsToolbar()
     }
 
@@ -77,14 +83,17 @@ struct GlobalSearchView: View {
     private var foundTodos: [TodoItem] { include(.todo) ? SearchEngine.filter(todos, query: query, categoryIDs: tokenIDs) : [] }
     private var foundNotes: [WikiNote] { include(.wiki) ? SearchEngine.filter(notes, query: query, categoryIDs: tokenIDs) : [] }
     private var foundLinks: [Bookmark] { include(.link) ? SearchEngine.filter(bookmarks, query: query, categoryIDs: tokenIDs) : [] }
+    private var foundMeals: [MealLog] { include(.meal) ? SearchEngine.filter(meals, query: query, categoryIDs: tokenIDs) : [] }
+    private var foundExpenses: [Expense] { include(.expense) ? SearchEngine.filter(expenses, query: query, categoryIDs: tokenIDs) : [] }
 
     /// 빈 화면 안내는 다른 탭처럼 List 위 overlay로 가운데에 둡니다.
     @ViewBuilder
     private var emptyState: some View {
         if isIdle && categories.isEmpty {
             ContentUnavailableView("모든 것을 한 번에 찾아요", systemImage: "magnifyingglass",
-                                   description: Text("단어, 할 일, 위키, 링크를 제목·내용·카테고리로 찾습니다."))
-        } else if !isIdle && foundWords.isEmpty && foundTodos.isEmpty && foundNotes.isEmpty && foundLinks.isEmpty {
+                                   description: Text("단어, 할 일, 위키, 링크, 기록을 제목·내용·카테고리로 찾습니다."))
+        } else if !isIdle && foundWords.isEmpty && foundTodos.isEmpty && foundNotes.isEmpty && foundLinks.isEmpty
+                    && foundMeals.isEmpty && foundExpenses.isEmpty {
             ContentUnavailableView.search(text: query)
         }
     }
@@ -95,6 +104,8 @@ struct GlobalSearchView: View {
         let foundTodos = foundTodos
         let foundNotes = foundNotes
         let foundLinks = foundLinks
+        let foundMeals = foundMeals
+        let foundExpenses = foundExpenses
 
         if !foundWords.isEmpty {
             Section(ItemKind.word.label) {
@@ -119,6 +130,22 @@ struct GlobalSearchView: View {
                     } label: { LinkRow(bookmark: bookmark) }
                     .buttonStyle(.plain)
                     .contextMenu { Button("편집", systemImage: "pencil") { editing = bookmark } }
+                }
+            }
+        }
+        if !foundMeals.isEmpty {
+            Section(ItemKind.meal.label) {
+                ForEach(foundMeals) { meal in
+                    Button { editingMeal = meal } label: { MealRow(meal: meal, showsDate: true) }
+                        .buttonStyle(.plain)
+                }
+            }
+        }
+        if !foundExpenses.isEmpty {
+            Section(ItemKind.expense.label) {
+                ForEach(foundExpenses) { expense in
+                    Button { editingExpense = expense } label: { ExpenseRow(expense: expense, showsDate: true) }
+                        .buttonStyle(.plain)
                 }
             }
         }

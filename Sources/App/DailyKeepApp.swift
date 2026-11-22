@@ -41,7 +41,7 @@ struct DailyKeepApp: App {
 }
 
 enum AppTab: String, Hashable {
-    case words, todo, wiki, links, search
+    case words, todo, wiki, links, records, search
 }
 
 @Observable
