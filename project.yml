@@ -2,8 +2,8 @@ name: DailyKeep
 options:
   bundleIdPrefix: com.klab
   deploymentTarget:
-    iOS: "27.1"
-    macOS: "27.0"
+    iOS: "26.0"
+    macOS: "26.0"
   createIntermediateGroups: true
 configFiles:
   Debug: Config/Env.xcconfig

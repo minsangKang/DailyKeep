@@ -1,6 +1,6 @@
 PROJECT := DailyKeep.xcodeproj
 SCHEME  := DailyKeep
-DEVICE  ?= iPhone Duo
+DEVICE  ?= iPhone 17 Pro
 DERIVED := build
 BUNDLE   = $(shell awk -F'= *' '/^DK_BUNDLE_ID/{print $$2}' Config/Env.xcconfig)
 TEAM     = $(shell awk -F'= *' '/^DEVELOPMENT_TEAM/{print $$2}' Config/Env.xcconfig)
@@ -21,7 +21,7 @@ env:
 generate: env
 	xcodegen generate --quiet
 
-# DEVICE="iPhone 18 Pro" make build-ios 처럼 시뮬레이터를 바꿀 수 있다
+# DEVICE="iPhone 17 Pro Max" make build-ios 처럼 시뮬레이터를 바꿀 수 있다
 build-ios: generate
 	xcodebuild -project $(PROJECT) -scheme $(SCHEME) -configuration Debug \
 		-destination 'platform=iOS Simulator,name=$(DEVICE)' \
@@ -33,7 +33,7 @@ build-mac: generate
 
 build: build-ios build-mac
 
-# iPhone Duo 시뮬레이터에서 실행
+# iOS 시뮬레이터에서 실행
 run: build-ios
 	xcrun simctl boot "$(DEVICE)" 2>/dev/null || true
 	xcrun simctl install "$(DEVICE)" $(IOS_APP)

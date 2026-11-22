@@ -52,7 +52,9 @@ nonisolated enum OnDeviceFailure: Equatable, Sendable {
     case guardrail, unsupportedLanguage, busy, tooLong, other
 
     init(_ error: any Error) {
-        if let error = error as? LanguageModelError {
+        #if compiler(>=6.4)
+        // iOS/macOS 27 SDK(Xcode 27): 새 오류 타입 LanguageModelError
+        if #available(iOS 27.0, macOS 27.0, *), let error = error as? LanguageModelError {
             switch error {
             case .guardrailViolation, .refusal: self = .guardrail
             case .unsupportedLanguageOrLocale: self = .unsupportedLanguage
@@ -62,13 +64,25 @@ nonisolated enum OnDeviceFailure: Equatable, Sendable {
             }
             return
         }
-        // 27.0에서 deprecated된 이전 오류 타입(GenerationError)으로 올 때를 대비해 케이스 이름으로 판별합니다.
+        // 26에서 실행될 때는 이전 오류 타입(27.0에서 deprecated된 GenerationError)으로 옵니다.
+        // 경고 없이 다루려고 케이스 이름으로 판별합니다.
         let name = String(describing: error)
         if name.contains("guardrailViolation") || name.contains("refusal") { self = .guardrail }
         else if name.contains("unsupportedLanguageOrLocale") { self = .unsupportedLanguage }
         else if name.contains("rateLimited") || name.contains("concurrentRequests") { self = .busy }
         else if name.contains("exceededContextWindowSize") { self = .tooLong }
         else { self = .other }
+        #else
+        // iOS/macOS 26 SDK(Xcode 26): LanguageModelError가 없어 GenerationError로 판별합니다.
+        guard let error = error as? LanguageModelSession.GenerationError else { self = .other; return }
+        switch error {
+        case .guardrailViolation, .refusal: self = .guardrail
+        case .unsupportedLanguageOrLocale: self = .unsupportedLanguage
+        case .rateLimited, .concurrentRequests: self = .busy
+        case .exceededContextWindowSize: self = .tooLong
+        default: self = .other
+        }
+        #endif
     }
 
     var koreanDescription: String {

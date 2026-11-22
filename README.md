@@ -1,16 +1,16 @@
 # Daily Keep
 
-단어, 할 일, 위키, 링크를 빠르게 담고 다시 찾아보는 흑백 SwiftUI 앱입니다. iPhone(iOS 27.1)과 Mac(macOS 27)에서 같은 코드로 돌아갑니다.
+단어, 할 일, 위키, 링크를 빠르게 담고 다시 찾아보는 흑백 SwiftUI 앱입니다. iPhone(iOS 26 이상)과 Mac(macOS 26 이상)에서 같은 코드로 돌아갑니다.
 
 ## 실행
 
 ```bash
-make run        # iPhone Duo 시뮬레이터
+make run        # iOS 시뮬레이터(기본 iPhone 17 Pro)
 make mac        # 맥 앱
 make test       # 단위 테스트(macOS)
 ```
 
-처음 실행하면 `Config/Env.xcconfig`가 예시 파일에서 만들어집니다. 소스 파일을 추가·삭제했다면 `make generate`로 프로젝트를 다시 만듭니다. Xcode 27.1, [XcodeGen](https://github.com/yonaskolb/XcodeGen)이 필요합니다.
+처음 실행하면 `Config/Env.xcconfig`가 예시 파일에서 만들어집니다. 소스 파일을 추가·삭제했다면 `make generate`로 프로젝트를 다시 만듭니다. Xcode 26 이상, [XcodeGen](https://github.com/yonaskolb/XcodeGen)이 필요합니다.
 
 ## 환경변수 — `Config/Env.xcconfig` 한 파일
 
@@ -55,6 +55,7 @@ DailyKeep-Backup-2026-11-15/
 
 ## 참고
 
-- API는 로컬 Xcode 27.1 Beta SDK 기준입니다. 릴리즈 SDK에서 이름이 바뀔 수 있습니다.
-- macOS 27.0 SDK에는 `ArrangementView`가 없어 맥은 `HStack`/하단 고정 패널로 대신합니다.
+- 최소 버전은 iOS 26 / macOS 26입니다.
+- `ArrangementView`는 iOS 27.1부터 씁니다. iOS 26과 맥은 `HStack`/`VStack`/하단 고정 패널로 대신합니다(`Sources/Common/Arranged.swift`).
+- iOS 27 전용 API는 `#if compiler(>=6.4)`(Xcode 27 SDK)와 `#available`로 함께 감쌉니다.
 - 기본 `GEMINI_MODEL` 값은 확인하지 못한 모델명입니다. 404가 나면 Env 파일에서 바꾸세요.
