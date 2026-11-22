@@ -1,6 +1,7 @@
 import SwiftData
 import SwiftUI
 
+/// 메모 탭의 할 일 쪽. 캘린더/전체 보기는 오른쪽 위 버튼으로 바꿉니다(가운데는 메모 탭의 세그먼트 자리).
 struct TodoTab: View {
     enum Mode: String, CaseIterable { case calendar = "캘린더", all = "전체" }
 
@@ -14,19 +15,17 @@ struct TodoTab: View {
             case .all: TodoListView()
             }
         }
-        .navigationTitle("할 일")
-        .inlineTitle()
         .toolbar {
-            ToolbarItem(placement: .principal) {
-                Picker("보기", selection: $mode) {
-                    ForEach(Mode.allCases, id: \.self) { Text($0.rawValue) }
+            ToolbarItem(placement: .trailing) {
+                switch mode {
+                case .calendar:
+                    Button("전체 보기", systemImage: "list.bullet") { mode = .all }
+                case .all:
+                    Button("캘린더 보기", systemImage: "calendar") { mode = .calendar }
                 }
-                .pickerStyle(.segmented)
-                .fixedSize()
             }
         }
         .navigationDestination(for: TodoItem.self) { TodoDetailView(todo: $0) }
-        .settingsToolbar()
         .task { await events.requestAccessIfNeeded() }
     }
 }

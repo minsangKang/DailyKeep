@@ -31,10 +31,8 @@ struct WikiListView: View {
                 ContentUnavailableView.search(text: query)
             }
         }
-        .navigationTitle("위키")
         .searchable(text: $query, prompt: "제목, 내용, 카테고리")
         .navigationDestination(for: WikiNote.self) { WikiEditorView(note: $0) }
-        .settingsToolbar()
         .toolbar {
             ToolbarItem(placement: .trailing) {
                 NewNoteButton(category: notes.usedCategories.first { $0.id == categoryID })

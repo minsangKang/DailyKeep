@@ -10,17 +10,14 @@ struct RootView: View {
             Tab(ItemKind.word.label, systemImage: ItemKind.word.systemImage, value: AppTab.words) {
                 NavigationStack { WordsView() }
             }
-            Tab(ItemKind.todo.label, systemImage: ItemKind.todo.systemImage, value: AppTab.todo) {
-                NavigationStack { TodoTab() }
+            Tab("메모", systemImage: "note.text", value: AppTab.notes) {
+                NavigationStack { NotesTab() }
             }
-            Tab(ItemKind.wiki.label, systemImage: ItemKind.wiki.systemImage, value: AppTab.wiki) {
-                NavigationStack { WikiListView() }
+            Tab("기록", systemImage: "list.clipboard", value: AppTab.records) {
+                NavigationStack { RecordsTab() }
             }
             Tab(ItemKind.link.label, systemImage: ItemKind.link.systemImage, value: AppTab.links) {
                 NavigationStack { LinksView() }
-            }
-            Tab("기록", systemImage: "square.and.pencil", value: AppTab.records) {
-                NavigationStack { RecordsTab() }
             }
             Tab("검색", systemImage: "magnifyingglass", value: AppTab.search, role: .search) {
                 NavigationStack { GlobalSearchView() }
