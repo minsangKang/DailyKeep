@@ -40,12 +40,21 @@ struct DailyKeepApp: App {
     }
 }
 
-enum AppTab: Hashable {
+enum AppTab: String, Hashable {
     case words, todo, wiki, links, search
 }
 
 @Observable
 final class AppRouter {
-    var tab: AppTab = .words
+    private static let tabKey = "lastSelectedTab"
+
+    /// 마지막으로 고른 탭. UserDefaults에 저장해 다음 실행 때 그 탭으로 엽니다.
+    var tab: AppTab {
+        didSet { UserDefaults.standard.set(tab.rawValue, forKey: Self.tabKey) }
+    }
     var showSettings = false
+
+    init() {
+        tab = UserDefaults.standard.string(forKey: Self.tabKey).flatMap(AppTab.init(rawValue:)) ?? .words
+    }
 }
